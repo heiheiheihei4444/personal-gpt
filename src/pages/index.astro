@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Views from '@/views';
+import 'antd/dist/reset.css';
+---
+
+<Layout title="GPT">
+  <Views client:only="react" />
+</Layout>
+
+<style></style>
