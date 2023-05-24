@@ -1,11 +1,42 @@
-import React, { useContext } from 'react';
-import { Avatar, Input } from 'antd';
+import React, { useContext, useState } from 'react';
+import { Input } from '@douyinfe/semi-ui';
 import { GlobalContext } from '@views/GlobalContext';
-import { UserOutlined, SendOutlined } from '@ant-design/icons';
 import './index.css';
 
 function Main() {
-  const { currentConversation } = useContext(GlobalContext);
+  const { config, currentConversation, setCurrentConversation } =
+    useContext(GlobalContext);
+  const { model, apiKey, temperature } = config || {};
+
+  const [inputValue, setInputValue] = useState('');
+
+  const getGptData = async (messages: { role: string; content: string }[]) => {
+    const data = await fetch('/api/completions', {
+      method: 'POST',
+      body: JSON.stringify({
+        model,
+        apiKey,
+        messages,
+        temperature,
+      }),
+    });
+    console.log(data);
+  };
+
+  const onSend = () => {
+    if (!inputValue) {
+      return;
+    }
+    const messages = currentConversation.messages.concat([
+      { role: 'user', content: inputValue },
+    ]);
+    getGptData(messages);
+    setCurrentConversation((pre) => ({
+      ...pre,
+      messages,
+    }));
+    setInputValue('');
+  };
 
   const renderUserBubble = (content: string, index: number) => {
     return (
@@ -26,7 +57,7 @@ function Main() {
   };
 
   return (
-    <div className="main">
+    <div id="main" className="main">
       <div className="main-conversation">
         {!currentConversation?.messages?.length && '请输入内容查找'}
         {currentConversation?.messages?.map((message, index) =>
@@ -35,14 +66,20 @@ function Main() {
             : renderAiBubble(message.content, index)
         )}
       </div>
-
       <div className="main-send">
         <Input
+          value={inputValue}
           className="main-send-input"
           size="large"
           placeholder="输入一条消息"
+          onChange={(value) => setInputValue(value)}
+          onEnterPress={onSend}
         />
-        <img src="/send.svg" className="main-send-icon" />
+        <img
+          src="/send.svg"
+          className={`main-send-icon ${!inputValue && 'not-send'}`}
+          onClick={onSend}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
-import { Input } from 'antd';
-import { SearchOutlined, PlusOutlined, DeleteFilled } from '@ant-design/icons';
+import { Input } from '@douyinfe/semi-ui';
+import { IconPlus, IconSearchStroked, IconDelete } from '@douyinfe/semi-icons';
 import { GlobalContext, IConversation } from '../GlobalContext';
 import './index.less';
 
@@ -15,11 +15,11 @@ function Slider() {
   return (
     <div className="slider">
       <div className="slider-header">
-        <Input placeholder="搜索" prefix={<SearchOutlined />} size="large" />
-        <PlusOutlined className="slider-header-add" />
+        <Input placeholder="搜索" prefix={<IconSearchStroked />} size="large" />
+        <IconPlus className="slider-header-add" />
       </div>
       <div className="slider-content">
-        {allConversations.map((conversation, index) => (
+        {allConversations?.map((conversation, index) => (
           <div
             key={index}
             className={`slider-content-item ${
@@ -28,12 +28,12 @@ function Slider() {
             onClick={() => onSelectConversations(conversation)}
           >
             <div className="slider-content-item-header">
-              {conversation.messages[0].content}
+              {conversation.messages[0]?.content || '新的对话'}
             </div>
             <div className="slider-content-item-content">
-              {conversation.messages[1].content}
+              {conversation.messages[1]?.content}
             </div>
-            <DeleteFilled className="slider-content-item-icon" />
+            <IconDelete className="slider-content-item-icon" />
           </div>
         ))}
       </div>

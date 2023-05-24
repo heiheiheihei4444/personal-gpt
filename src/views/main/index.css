@@ -61,6 +61,7 @@
     justify-content: flex-start;
     padding: 0 24px;
     gap: 16px;
+    border-bottom-right-radius: 15px;
 }
 
 .main-send-input {
@@ -74,3 +75,8 @@
 .ant-input {
     border-radius: 15px;
 }
+
+.not-send {
+    cursor: not-allowed;
+}
+

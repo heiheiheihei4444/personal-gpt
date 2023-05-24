@@ -12,9 +12,10 @@
     "lintcheck": "eslint --quiet --ext .js,.ts,.tsx,.astro ."
   },
   "dependencies": {
-    "@ant-design/icons": "^5.1.0",
     "@astrojs/react": "^2.2.0",
     "@astrojs/vercel": "^3.4.0",
+    "@douyinfe/semi-icons": "^2.35.0",
+    "@douyinfe/semi-ui": "^2.35.0",
     "antd": "^5.4.0",
     "astro": "^2.4.1",
     "less": "^4.1.3",
