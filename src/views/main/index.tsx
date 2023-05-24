@@ -4,8 +4,12 @@ import { GlobalContext } from '@views/GlobalContext';
 import './index.css';
 
 function Main() {
-  const { config, currentConversation, setCurrentConversation } =
-    useContext(GlobalContext);
+  const {
+    config,
+    currentConversation,
+    setCurrentConversation,
+    setAllConversations,
+  } = useContext(GlobalContext);
   const { model, apiKey, temperature } = config || {};
 
   const [inputValue, setInputValue] = useState('');
@@ -31,10 +35,19 @@ function Main() {
       { role: 'user', content: inputValue },
     ]);
     getGptData(messages);
-    setCurrentConversation((pre) => ({
-      ...pre,
+    const modifyConversation = {
+      ...currentConversation,
       messages,
-    }));
+    };
+    setCurrentConversation(modifyConversation);
+    setAllConversations((pre) =>
+      pre.map((item) => {
+        if (item.id === currentConversation.id) {
+          return modifyConversation;
+        }
+        return item;
+      })
+    );
     setInputValue('');
   };
 

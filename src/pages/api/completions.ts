@@ -1,5 +1,4 @@
 import type { APIRoute } from 'astro';
-import { WebSocketServer } from 'ws';
 
 export const post: APIRoute = async ({ request }) => {
   const baseUrl = 'https://api.openai.com';

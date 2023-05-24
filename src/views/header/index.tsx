@@ -22,11 +22,9 @@ function Header() {
     setIsOpen(false);
   };
 
-  console.log(5345, config);
-
   return (
     <header className="header">
-      <div className="header-title">{config?.title || 'PERSONAL GPT'}</div>
+      <div className="header-title">{config.title}</div>
       <div className="header-operate">
         <IconSetting
           className="header-operate-setting"

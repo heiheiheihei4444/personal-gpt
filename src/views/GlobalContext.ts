@@ -18,6 +18,7 @@ export const GlobalContext = createContext<{
   allConversations: IConversation[];
   currentConversation: IConversation;
   setCurrentConversation?: (conversation: IConversation) => IConversation;
+  setAllConversations?: (conversations: IConversation[]) => IConversation[];
   setConfig?: (config: IConfig) => IConfig;
 }>({
   config: { title: '', model: '', apiKey: '', temperature: 0.7 },

@@ -8,6 +8,8 @@ import {
   ALL_CONVERSTATIONS,
   CURRENT_CONVERSATION,
   GLOBAL_CONFIG,
+  generateConfigInit,
+  generateConverstationInit,
   getLocalStorage,
   setLocalStorage,
 } from '../contants';
@@ -27,29 +29,30 @@ function Views() {
     const currentData = getLocalStorage(CURRENT_CONVERSATION);
     const globalConfig = getLocalStorage(GLOBAL_CONFIG);
     if (!allData?.length) {
-      const data: IConversation = {
-        id: generateUniqueString(8),
-        temperature: 1,
-        messages: [],
-      };
-      setAllConversations([data]);
-      setCurrentConversation(data);
+      const initObj = generateConverstationInit('text');
+      setAllConversations([initObj]);
+      setCurrentConversation(initObj);
     } else {
       setAllConversations(allData);
       setCurrentConversation(currentData);
-      setConfig(globalConfig);
     }
-    console.log(4442224555);
+    setConfig(
+      globalConfig && Object.keys(globalConfig)?.length
+        ? globalConfig
+        : generateConfigInit()
+    );
   }, []);
 
   useEffect(() => {
     if (!isInit) {
+      console.log(4242465565, currentConversation);
       setLocalStorage(ALL_CONVERSTATIONS, allConversations);
       setLocalStorage(CURRENT_CONVERSATION, currentConversation);
       setLocalStorage(GLOBAL_CONFIG, config);
     }
     setIsInit(false);
-  }, [config, allConversations, currentConversation]);
+  }, [config, currentConversation, allConversations]);
+  console.log(563453, currentConversation);
 
   return (
     <GlobalContext.Provider
@@ -58,6 +61,7 @@ function Views() {
         allConversations,
         currentConversation,
         setCurrentConversation,
+        setAllConversations,
         setConfig,
       }}
     >
