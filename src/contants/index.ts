@@ -1,5 +1,6 @@
 import { generateUniqueString } from '@utils/common';
 import type { IConfig, IConversation } from '@views/GlobalContext';
+import { IConfig } from '../views/GlobalContext';
 
 /** 模型列表 */
 export const MODEL_OPTIONS = [
@@ -50,9 +51,10 @@ export const generateConverstationInit = (
   }
 };
 
-export const generateConfigInit = () => ({
+export const generateConfigInit = (id?: string): IConfig => ({
   title: 'PERSONAL GPT',
   model: 'gpt-3.5-turbo',
   apiKey: '',
   temperature: 0.7,
+  currentId: id || '',
 });

@@ -1,24 +1,23 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { GlobalContext } from '@views/GlobalContext';
-import { IconSetting } from '@douyinfe/semi-icons';
-import { Form, SideSheet, Collapse } from '@douyinfe/semi-ui';
+import { SettingOutlined } from '@ant-design/icons';
+import { Form, Drawer, Input, Select, Collapse, Slider } from 'antd';
 import { MODEL_OPTIONS } from '../../contants';
-import { FormApi } from '@douyinfe/semi-ui/lib/es/form';
 import './index.less';
 
 function Header() {
   const { config, setConfig } = useContext(GlobalContext);
 
   const [isOpen, setIsOpen] = useState(false);
-  const formRef = useRef<FormApi>();
+  const [formInst] = Form.useForm();
 
   const onOpenSetting = () => {
     setIsOpen(true);
   };
 
   const onCloseSetting = () => {
-    const values = formRef.current.getValues();
-    setConfig({ ...values });
+    const values = formInst.getFieldsValue();
+    setConfig((pre) => ({ ...pre, ...values }));
     setIsOpen(false);
   };
 
@@ -26,50 +25,43 @@ function Header() {
     <header className="header">
       <div className="header-title">{config.title}</div>
       <div className="header-operate">
-        <IconSetting
+        <SettingOutlined
           className="header-operate-setting"
           onClick={onOpenSetting}
         />
       </div>
-      <SideSheet
+      <Drawer
         title="配置中心"
         placement="right"
-        keepDOM={false}
-        onCancel={onCloseSetting}
-        visible={isOpen}
-        getPopupContainer={() => document.getElementById('views')}
-        closeOnEsc
+        onClose={onCloseSetting}
+        open={isOpen}
+        getContainer={() => document.getElementById('views')}
+        keyboard
         motion={false}
         style={{ width: 400 }}
       >
-        <Form
-          initValues={config}
-          getFormApi={(formapi) => (formRef.current = formapi)}
-        >
+        <Form form={formInst} initialValues={config}>
           <Collapse accordion>
-            <Collapse.Panel header="聊天相关" itemKey="1">
-              <Form.Input label="名称:" field="title" />
-              <Form.Input label="Api Key:" field="apiKey" />
-              <Form.Select
-                label="模型:"
-                field="model"
-                optionList={MODEL_OPTIONS}
-                style={{ width: '100%' }}
-              />
-              <Form.Slider
-                label="温度"
-                field="temperature"
-                min={0}
-                max={1}
-                step={0.1}
-              />
+            <Collapse.Panel header="聊天相关" key="1">
+              <Form.Item label="名称:" name="title">
+                <Input />
+              </Form.Item>
+              <Form.Item label="Api Key:" name="apiKey">
+                <Input></Input>
+              </Form.Item>
+              <Form.Item label="模型:" name="model">
+                <Select options={MODEL_OPTIONS} />
+              </Form.Item>
+              <Form.Item label="温度" name="temperature">
+                <Slider min={0} max={1} step={0.1} />
+              </Form.Item>
             </Collapse.Panel>
-            <Collapse.Panel header="图像生成" itemKey="2">
+            <Collapse.Panel header="图像生成" key="2">
               <p>Hi, bytedance dance dance. This is the docsite of Semi UI. </p>
             </Collapse.Panel>
           </Collapse>
         </Form>
-      </SideSheet>
+      </Drawer>
     </header>
   );
 }

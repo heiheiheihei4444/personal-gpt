@@ -1,4 +1,9 @@
 import type { APIRoute } from 'astro';
+import {
+  createParser,
+  ParsedEvent,
+  ReconnectInterval,
+} from 'eventsource-parser';
 
 export const post: APIRoute = async ({ request }) => {
   const baseUrl = 'https://api.openai.com';
@@ -26,20 +31,39 @@ export const post: APIRoute = async ({ request }) => {
       status: res.status,
     });
   }
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  let counter = 0;
 
-  const reader = res.body?.getReader();
   const stream = new ReadableStream({
-    start(controller) {
-      const push = () => {
-        reader?.read().then(({ value, done }) => {
-          if (done) {
+    async start(controller) {
+      function onParse(event: ParsedEvent | ReconnectInterval) {
+        if (event.type === 'event') {
+          const data = event.data;
+          if (data === '[DONE]') {
             controller.close();
             return;
           }
-          push();
-        });
-      };
-      push();
+          try {
+            const json = JSON.parse(data);
+            const text = json.choices[0]?.delta?.content;
+            if (!text) return;
+            if (counter < 2 && (text.match(/\n/) || []).length) {
+              return;
+            }
+            const queue = encoder.encode(text);
+            controller.enqueue(queue);
+            counter++;
+          } catch (e) {
+            controller.error(e);
+          }
+        }
+      }
+
+      const parser = createParser(onParse);
+      for await (const chunk of res.body as any) {
+        parser.feed(decoder.decode(chunk));
+      }
     },
   });
   return new Response(stream);

@@ -1,6 +1,5 @@
 {
   "extends": ["plugin:astro/recommended"],
-  "parser": "babel-eslint",
   "env": {
     "es6": true
   },
