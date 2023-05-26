@@ -38,7 +38,7 @@ function Header() {
         getContainer={() => document.getElementById('views')}
         keyboard
         motion={false}
-        style={{ width: 400 }}
+        // style={{ width: 400 }}
       >
         <Form form={formInst} initialValues={config}>
           <Collapse accordion>

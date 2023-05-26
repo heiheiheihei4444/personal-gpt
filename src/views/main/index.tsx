@@ -10,7 +10,7 @@ import RemarkBreaks from 'remark-breaks';
 import RehypeHighlight from 'rehype-highlight';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'; // 代码高亮主题风格
-import './index.css';
+import './index.less';
 
 function Main() {
   const {
