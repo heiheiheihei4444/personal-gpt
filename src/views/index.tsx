@@ -14,8 +14,6 @@ import {
   setLocalStorage,
 } from '../contants';
 
-import './index.css';
-
 function Views() {
   const [allConversations, setAllConversations] = useState<IConversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<IConversation>(
@@ -88,9 +86,16 @@ function Views() {
         setConfig,
       }}
     >
-      <div id="views" className="views">
+      <div
+        id="views"
+        className="w-2/3 h-2/3 flex rounded-2xl"
+        style={{
+          boxShadow:
+            'rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px',
+        }}
+      >
         <Slider />
-        <div className="views-right">
+        <div className="flex-1">
           <Header />
           <Main />
         </div>

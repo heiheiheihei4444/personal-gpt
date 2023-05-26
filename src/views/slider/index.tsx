@@ -36,7 +36,7 @@ function Slider() {
   };
 
   return (
-    <div className="slider">
+    <div className="slider w-1/4 overflow-auto border-r-gray-100">
       <div className="slider-header">
         <Input placeholder="搜索" prefix={<SearchOutlined />} size="large" />
         <PlusOutlined
