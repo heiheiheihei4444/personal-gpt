@@ -2,6 +2,7 @@ import { createContext } from 'react';
 
 export interface IConversation {
   id: string;
+  type: 'image' | 'text';
   temperature: number;
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
 }
@@ -12,6 +13,8 @@ export interface IConfig {
   model: string;
   apiKey?: string;
   temperature?: number;
+  n: number;
+  size: string;
 }
 
 export type IConversations = { [key: string]: IConversation };

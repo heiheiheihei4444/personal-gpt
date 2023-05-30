@@ -1,3 +1,4 @@
+import { BASE_URL } from '@contants';
 import type { APIRoute } from 'astro';
 import {
   createParser,
@@ -6,8 +7,6 @@ import {
 } from 'eventsource-parser';
 
 export const post: APIRoute = async ({ request }) => {
-  const baseUrl = 'https://api.openai.com';
-
   const { apiKey, model, temperature, messages } = await request.json();
   let key = apiKey;
 
@@ -17,18 +16,21 @@ export const post: APIRoute = async ({ request }) => {
     }
     key = import.meta.env.OPEN_API_KEY;
   }
-  const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+
+  const res = await fetch(`${BASE_URL}/v1/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({ model, temperature, messages, stream: true }),
+  }).catch((err) => {
+    return { body: err };
   });
 
   if (!res.ok) {
     return new Response(res.body, {
-      status: res.status,
+      status: 500,
     });
   }
   const encoder = new TextEncoder();

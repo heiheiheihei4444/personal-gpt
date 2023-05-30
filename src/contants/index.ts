@@ -2,6 +2,8 @@ import { generateUniqueString } from '@utils/common';
 import type { IConfig, IConversation } from '@views/GlobalContext';
 import { IConfig } from '../views/GlobalContext';
 
+export const BASE_URL = 'https://api.openai.com';
+
 /** 模型列表 */
 export const MODEL_OPTIONS = [
   { label: 'gpt-4-32k', value: 'gpt-4-32k' },
@@ -9,6 +11,13 @@ export const MODEL_OPTIONS = [
   { label: 'gpt-3.5-turbo-0301', value: 'gpt-3.5-turbo-0301' },
   { label: 'gpt-3.5-turbo', value: 'gpt-3.5-turbo' },
   { label: 'gpt-3.5', value: 'gpt-3.5' },
+];
+
+/** size列表 */
+export const SIZE_OPTIONS = [
+  { label: '256x256', value: '256x256' },
+  { label: '512x512', value: '512x512' },
+  { label: '1024x1024', value: '1024x1024' },
 ];
 
 /** 全部对话 */
@@ -44,10 +53,11 @@ export const generateConverstationInit = (
   if (type === 'text') {
     return {
       id: generateUniqueString(8),
+      type: 'text',
       messages: [],
     };
   } else {
-    return {};
+    return { id: generateUniqueString(8), type: 'image', messages: [] };
   }
 };
 
@@ -57,4 +67,6 @@ export const generateConfigInit = (id?: string): IConfig => ({
   apiKey: '',
   temperature: 0.7,
   currentId: id || '',
+  n: 1,
+  size: '256x256',
 });

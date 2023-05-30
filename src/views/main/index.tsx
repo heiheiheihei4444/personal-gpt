@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Input, message } from 'antd';
-import { CopyFilled } from '@ant-design/icons';
+import { CopyFilled, BulbOutlined } from '@ant-design/icons';
 import { GlobalContext } from '@views/GlobalContext';
 import ReactMarkdown from 'react-markdown';
 import RemarkMath from 'remark-math';
@@ -110,9 +110,13 @@ function Main() {
 
   const renderAiBubble = (content: string, index: number) => {
     return (
-      <div className="ai-bubble" key={index}>
-        <img src="/ai.svg" className="ai-bubble-avatar"></img>
-        <div className="ai-bubble-content">
+      <div
+        className="w-full flex items-start justify-start gap-5"
+        key={index}
+        style={{ fontFamily: '翩翩体-简' }}
+      >
+        <img src="/ai.svg" className="w-8 mt-3"></img>
+        <div className="rounded-xl p-4 text-gray-600 bg-slate-100">
           <ReactMarkdown
             children={content}
             remarkPlugins={[RemarkMath, RemarkGfm, RemarkBreaks]}
@@ -154,8 +158,12 @@ function Main() {
   };
 
   return (
-    <div id="main" className="main">
-      <div id="main-conversation" className="main-conversation">
+    <div id="main" className="relative" style={{ height: 'calc(100% - 60px)' }}>
+      <div
+        id="main-conversation"
+        className="p-7 overflow-auto h-full"
+        style={{ paddingBottom: 115 }}
+      >
         {!currentConversation?.messages?.length && '请输入内容查找'}
         {currentConversation?.messages?.map((message, index) =>
           message.role === 'user'
@@ -163,10 +171,13 @@ function Main() {
             : renderAiBubble(message.content, index)
         )}
       </div>
-      <div className="main-send">
-        <Input
+      <div className=" absolute w-full bottom-0 left-0 min-h-fit bg-white flex items-center justify-center gap-7 rounded-2xl px-7 py-3">
+        <BulbOutlined />
+        <Input.TextArea
+          allowClear
+          autoSize={{ minRows: 1, maxRows: 3 }}
           value={inputValue}
-          className="main-send-input"
+          className="flex-1"
           size="large"
           placeholder="输入一条消息"
           onChange={(e) => setInputValue(e.target.value)}
@@ -174,7 +185,7 @@ function Main() {
         />
         <img
           src="/send.svg"
-          className={`main-send-icon ${!inputValue && 'not-send'}`}
+          className={`cursor-pointer ${!inputValue && 'cursor-not-allowed'}`}
           onClick={onSend}
         />
       </div>
