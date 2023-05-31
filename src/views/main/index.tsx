@@ -179,7 +179,7 @@ function Main() {
     >
       <div
         id="main-conversation"
-        className=" w-full p-7 overflow-auto h-full"
+        className="w-full p-7 overflow-auto h-full"
         style={{ paddingBottom: 115 }}
       >
         {!currentConversation?.messages?.length && '请输入内容查找'}
@@ -198,7 +198,7 @@ function Main() {
           )
         )}
         {loading && (
-          <div className=" w-full h-5 flex text-center justify-center">
+          <div className="w-full h-5 flex text-center justify-center">
             <Button type="dashed" onClick={onStop}>
               停止回答
             </Button>

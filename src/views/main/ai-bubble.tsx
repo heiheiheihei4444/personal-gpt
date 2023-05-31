@@ -18,7 +18,6 @@ interface IAiBubble {
 
 function AiBubble(props: IAiBubble) {
   const { keyIndex, content, loading } = props;
-  console.log(444, loading && !content);
 
   return (
     <div
@@ -30,8 +29,8 @@ function AiBubble(props: IAiBubble) {
       <Skeleton
         active
         loading={loading && !content}
-        paragraph={{ rows: 1, width: 200 }}
-        title={false}
+        paragraph={false}
+        title={{ width: 200 }}
       >
         <div className="rounded-xl p-4 text-gray-600 bg-slate-100">
           <ReactMarkdown
