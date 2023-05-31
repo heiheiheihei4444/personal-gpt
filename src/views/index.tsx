@@ -88,14 +88,14 @@ function Views() {
     >
       <div
         id="views"
-        className="w-2/3 h-2/3 flex rounded-2xl"
+        className="w-2/3 h-2/3 flex rounded-2xl relative"
         style={{
           boxShadow:
             'rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px',
         }}
       >
         <Slider />
-        <div className="flex-1">
+        <div className=" w-1/3 flex-1">
           <Header />
           <Main />
         </div>

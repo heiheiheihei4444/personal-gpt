@@ -30,9 +30,10 @@ export const post: APIRoute = async ({ request }) => {
 
   if (!res.ok) {
     return new Response(res.body, {
-      status: 500,
+      status: res.status,
     });
   }
+
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let counter = 0;

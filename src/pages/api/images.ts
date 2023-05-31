@@ -12,22 +12,34 @@ export const post: APIRoute = async ({ request }) => {
     key = import.meta.env.OPEN_API_KEY;
   }
 
-  const res = await fetch(`${BASE_URL}/v1/images/generations`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({ prompt, response_format: 'url', n }),
-  }).catch((err) => {
-    return { body: err };
-  });
+  try {
+    const res = await fetch(`${BASE_URL}/v1/images/generations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({ prompt, n, size }),
+    });
+    console.log(55555, res);
 
-  if (!res.ok) {
-    return new Response(res.body, {
+    const data = await res.json();
+    const { data: images = [], error } = data;
+
+    if (error?.message) {
+      throw new Error(error.message);
+    }
+
+    return new Response(
+      JSON.stringify({
+        data: images?.map((img) => img.url) || [],
+      }),
+      { status: 200 }
+    );
+  } catch (e) {
+    console.log('Error', e);
+    return new Response(JSON.stringify({ msg: e?.message || e?.stack || e }), {
       status: 500,
     });
   }
-
-  return new Response(res.body);
 };

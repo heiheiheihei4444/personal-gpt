@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Input, message } from 'antd';
-import { CopyFilled, BulbOutlined } from '@ant-design/icons';
+import { Input, message, Tooltip, Button } from 'antd';
+import { CopyFilled, BulbOutlined, HistoryOutlined } from '@ant-design/icons';
 import { GlobalContext } from '@views/GlobalContext';
 import ReactMarkdown from 'react-markdown';
 import RemarkMath from 'remark-math';
@@ -10,19 +10,54 @@ import RemarkBreaks from 'remark-breaks';
 import RehypeHighlight from 'rehype-highlight';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'; // 代码高亮主题风格
-import './index.less';
+import InputBox from './input-box';
+import AiBubble from './ai-bubble';
+import UserBubble from './user-bubble';
 
 function Main() {
   const {
     config,
+    setConfig,
     currentConversation,
     setCurrentConversation,
     setAllConversations,
   } = useContext(GlobalContext);
-  const { model, apiKey, temperature } = config || {};
-  const [inputValue, setInputValue] = useState('');
+  const { model, apiKey, n, size, temperature, isContinuous } = config || {};
+  const [loading, setLoading] = useState(false);
+  const [curMessage, setCurMessage] = useState([]);
+  const [controller, setController] = useState<AbortController>(null);
+
+  const updateStorage = (params: { type: 'all' | 'cur'; messages: any }) => {
+    const id = currentConversation.id;
+    const { type, messages } = params;
+    if (type === 'all') {
+      setAllConversations((pre) => ({
+        ...pre,
+        [id]: {
+          ...pre[id],
+          messages,
+        },
+      }));
+    } else {
+      setCurrentConversation((pre) => {
+        return {
+          ...pre,
+          messages,
+        };
+      });
+    }
+  };
 
   const getGptData = async (messages: { role: string; content: string }[]) => {
+    setLoading(true);
+    const abortController = new AbortController();
+    setController(abortController);
+    let done = false;
+    let answer = '';
+    const modifyMessages = [...currentConversation.messages, ...messages];
+    modifyMessages.push({ role: 'assistant', content: answer });
+    updateStorage({ type: 'cur', messages: modifyMessages });
+
     const response = await fetch('/api/completions', {
       method: 'POST',
       body: JSON.stringify({
@@ -31,64 +66,101 @@ function Main() {
         messages,
         temperature,
       }),
+      signal: abortController.signal,
     });
     const data = response.body;
+    console.log(response);
     if (!data) {
       return;
     }
     const reader = data.getReader();
     const decoder = new TextDecoder();
-    let done = false;
-    let answer = '';
+
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
       const chunkValue = decoder.decode(value);
       answer += chunkValue;
-      if (messages[messages.length - 1].role !== 'assistant') {
-        messages.push({ role: 'assistant', content: answer });
-      } else {
-        messages[messages.length - 1].content = answer;
+      if (response.status === 400) {
+        answer =
+          '当前连续对话已达极限，如需继续使用请新建对话或关闭连续对话功能！';
+        done = true;
       }
-      setCurrentConversation((pre) => {
-        return {
-          ...pre,
-          messages,
-        };
-      });
+      modifyMessages[modifyMessages.length - 1].content = answer;
+      setCurMessage(modifyMessages);
+      updateStorage({ type: 'cur', messages: modifyMessages });
     }
     setTimeout(() => {
-      setAllConversations((pre) => ({
-        ...pre,
-        [currentConversation.id]: { ...currentConversation, messages },
-      }));
+      updateStorage({
+        type: 'all',
+        id: currentConversation.id,
+        messages: modifyMessages,
+      });
+      setCurMessage([]);
+      setLoading(false);
     }, 1000);
   };
 
-  const onSend = () => {
-    if (!inputValue) {
+  const getImageData = async (prompt: string) => {
+    setLoading(true);
+    const messages = currentConversation.messages.concat([
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: '' },
+    ]);
+    updateStorage({ type: 'cur', messages });
+    updateStorage({ type: 'all', messages });
+    const res = await fetch('/api/images', {
+      method: 'POST',
+      body: JSON.stringify({
+        n,
+        size,
+        apiKey,
+        prompt,
+      }),
+    });
+
+    const { data = [], msg } = await res.json();
+    messages[messages.length - 1].content = data.reduce((pre, cur) => {
+      pre += `![](${cur}) \n`;
+      return pre;
+    }, '');
+    updateStorage({ type: 'cur', messages });
+    updateStorage({ type: 'all', messages });
+    setLoading(false);
+  };
+
+  const onSend = async (value: string) => {
+    if (!value) {
       return;
     }
-    const messages = currentConversation.messages.concat([
-      { role: 'user', content: inputValue },
-    ]);
-    getGptData(messages);
-    const modifyConversation = {
-      ...currentConversation,
-      messages,
-    };
-    setCurrentConversation(modifyConversation);
-    setAllConversations((pre) => {
-      pre[currentConversation.id] = modifyConversation;
-      return pre;
-    });
-    setInputValue('');
+
+    if (currentConversation.type === 'image') {
+      await getImageData(value);
+    } else {
+      const newMessages = [{ role: 'user', content: value }];
+      const messages = currentConversation.messages.concat(newMessages);
+      await getGptData(isContinuous ? messages : newMessages);
+    }
   };
 
   const onCopy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       message.success('复制成功!');
     });
+  };
+
+  const onChangeContinuous = () => {
+    setConfig((pre) => ({ ...pre, isContinuous: !config.isContinuous }));
+  };
+
+  const onStop = () => {
+    controller?.abort?.();
+    updateStorage({
+      type: 'all',
+      messages: curMessage,
+    });
+    setLoading(false);
+    setCurMessage([]);
   };
 
   useEffect(() => {
@@ -99,96 +171,41 @@ function Main() {
     });
   }, []);
 
-  const renderUserBubble = (content: string, index: number) => {
-    return (
-      <div className="user-bubble" key={index}>
-        <div className="user-bubble-content">{content}</div>
-        <img src="/user.svg" className="user-bubble-avatar"></img>
-      </div>
-    );
-  };
-
-  const renderAiBubble = (content: string, index: number) => {
-    return (
-      <div
-        className="w-full flex items-start justify-start gap-5"
-        key={index}
-        style={{ fontFamily: '翩翩体-简' }}
-      >
-        <img src="/ai.svg" className="w-8 mt-3"></img>
-        <div className="rounded-xl p-4 text-gray-600 bg-slate-100">
-          <ReactMarkdown
-            children={content}
-            remarkPlugins={[RemarkMath, RemarkGfm, RemarkBreaks]}
-            rehypePlugins={[RehypeKatex]}
-            components={{
-              code({ node, inline, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '');
-                return (
-                  <span className="code-block" style={{ position: 'relative' }}>
-                    {!inline && match ? (
-                      <>
-                        <SyntaxHighlighter
-                          showLineNumbers={true}
-                          style={oneDark}
-                          language={match[1]}
-                          PreTag="div"
-                          {...props}
-                        >
-                          {String(children).replace(/\n$/, '')}
-                        </SyntaxHighlighter>
-                        <CopyFilled
-                          className="code-copy-icon"
-                          onClick={() => onCopy(children[0])}
-                        />
-                      </>
-                    ) : (
-                      <code className={className} {...props}>
-                        {children}
-                      </code>
-                    )}
-                  </span>
-                );
-              },
-            }}
-          />
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div id="main" className="relative" style={{ height: 'calc(100% - 60px)' }}>
+    <div
+      id="main"
+      className="w-full relative"
+      style={{ height: 'calc(100% - 60px)' }}
+    >
       <div
         id="main-conversation"
-        className="p-7 overflow-auto h-full"
+        className=" w-full p-7 overflow-auto h-full"
         style={{ paddingBottom: 115 }}
       >
         {!currentConversation?.messages?.length && '请输入内容查找'}
         {currentConversation?.messages?.map((message, index) =>
-          message.role === 'user'
-            ? renderUserBubble(message.content, index)
-            : renderAiBubble(message.content, index)
+          message.role === 'user' ? (
+            <UserBubble
+              keyIndex={message.content.slice(0, 10) + index}
+              content={message.content}
+            />
+          ) : (
+            <AiBubble
+              keyIndex={message.content.slice(0, 10) + index}
+              content={message.content}
+              loading={loading}
+            />
+          )
+        )}
+        {loading && (
+          <div className=" w-full h-5 flex text-center justify-center">
+            <Button type="dashed" onClick={onStop}>
+              停止回答
+            </Button>
+          </div>
         )}
       </div>
-      <div className=" absolute w-full bottom-0 left-0 min-h-fit bg-white flex items-center justify-center gap-7 rounded-2xl px-7 py-3">
-        <BulbOutlined />
-        <Input.TextArea
-          allowClear
-          autoSize={{ minRows: 1, maxRows: 3 }}
-          value={inputValue}
-          className="flex-1"
-          size="large"
-          placeholder="输入一条消息"
-          onChange={(e) => setInputValue(e.target.value)}
-          onPressEnter={onSend}
-        />
-        <img
-          src="/send.svg"
-          className={`cursor-pointer ${!inputValue && 'cursor-not-allowed'}`}
-          onClick={onSend}
-        />
-      </div>
+      <InputBox loading={loading} onSend={onSend} />
     </div>
   );
 }

@@ -15,6 +15,7 @@ export interface IConfig {
   temperature?: number;
   n: number;
   size: string;
+  isContinuous: boolean; // 是否连续对话
 }
 
 export type IConversations = { [key: string]: IConversation };

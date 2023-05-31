@@ -69,4 +69,5 @@ export const generateConfigInit = (id?: string): IConfig => ({
   currentId: id || '',
   n: 1,
   size: '256x256',
+  isContinuous: true,
 });
